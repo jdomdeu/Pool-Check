@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  # Orion es un NGSI-v2 context broker
+  orion-v2:
+    labels:
+      org.fiware: 'tutorial'
+    image: quay.io/fiware/orion:2.4.0
+    hostname: orion
+    container_name: fiware-orion
+    depends_on:
+      - mongo-db
+    networks:
+      - default
+    ports:
+      - "${ORION_PORT}:${ORION_PORT}" # Puerto definido por ORION_PORT, por ejemplo, 1026
+    command: >
+      -dbhost mongo-db
+      -logLevel DEBUG
+      -noCache
+    healthcheck:
+      test: curl --fail -s http://orion:${ORION_PORT}/version || exit 1
+      interval: 5s
+
+  # Base de datos MongoDB
+  mongo-db:
+    labels:
+      org.fiware: 'tutorial'
+    image: mongo:3.6
+    hostname: mongo-db
+    container_name: db-mongo
+    expose:
+      - "${MONGO_DB_PORT}"
+    ports:
+      - "${MONGO_DB_PORT}:${MONGO_DB_PORT}" # Puerto definido por MONGO_DB_PORT, por ejemplo, 27017
+    networks:
+      - default
+    volumes:
+      - mongo-db:/data
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # STH
+  fiware-sth-comet:
+    image: telefonicaiot/fiware-sth-comet
+    depends_on:
+      - mongo-db
+    ports:
+      - "8666:8666"
+    networks:
+      - default
+    environment:
+      - STH_HOST=0.0.0.0
+      - DB_URI=mongo-db:27017
+      - NAME_ENCODING=true
+      - DATA_MODEL=collection-per-attribute
+      - LOGOPS_LEVEL=DEBUG
+    container_name: sth
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  mongo-db: # Definir como desees

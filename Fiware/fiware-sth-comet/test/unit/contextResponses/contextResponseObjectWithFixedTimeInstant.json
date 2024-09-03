@@ -1,0 +1,16 @@
+{
+  "attrNameObject": {
+    "type": "attrType",
+    "value": {
+      "just": "just",
+      "an": "an",
+      "object": "object"
+    },
+    "metadata": {
+      "TimeInstant": {
+        "type": "ISO8601",
+        "value": "1970-01-01T00:00:00.000Z"
+      }
+    }
+  }
+}
